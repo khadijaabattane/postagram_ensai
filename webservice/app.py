@@ -77,5 +77,5 @@ async def get_signed_url_put(filename: str,filetype: str, postId: str,authorizat
     return getSignedUrl(filename, filetype, postId, authorization)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="debug")
+    uvicorn.run(app, host="0.0.0.0", port=80, log_level="debug")
 
