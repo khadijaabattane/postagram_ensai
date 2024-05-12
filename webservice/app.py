@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from typing import Union
 import logging
-from fastapi import FastAPI, Request, status, Header
+from fastapi import FastAPI, Request, status, Header, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +12,22 @@ from pydantic import BaseModel
 import uvicorn
 
 from getSignedUrl import getSignedUrl
+
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class User(BaseModel):
+    id: int
+    name: str
+    age: int
+
+# Sample data for testing
+users = [
+    User(id=1, name="Alice", age=30),
+    User(id=2, name="Bob", age=25),
+    User(id=3, name="Charlie", age=35),
+]
 
 load_dotenv()
 
@@ -62,9 +78,9 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
 
 @app.get("/posts")
 async def get_all_posts(user: Union[str, None] = None):
-
+    
     # Doit retourner une liste de post
-    return []
+    return users
 
     
 @app.delete("/posts/{post_id}")
