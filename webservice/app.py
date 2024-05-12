@@ -17,17 +17,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-class User(BaseModel):
-    id: int
-    name: str
-    age: int
 
-# Sample data for testing
-users = [
-    User(id=1, name="Alice", age=30),
-    User(id=2, name="Bob", age=25),
-    User(id=3, name="Charlie", age=35),
-]
 
 load_dotenv()
 
@@ -66,27 +56,35 @@ s3_client = boto3.client('s3', config=boto3.session.Config(signature_version='s3
 bucket = os.getenv("BUCKET")
 
 
+
 @app.post("/posts")
 async def post_a_post(post: Post, authorization: str | None = Header(default=None)):
+    # Save the post to DynamoDB
+    item = {
+        "Entity": f"USER#{post.title}",  # Assuming title is unique for each post
+        "EntityID": f"#METADATA#{post.title}",
+        "Title": post.title,
+        "Body": post.body
+    }
+    response = table.put_item(Item=item)
+    logger.info(f"Saved post with title: {post.title}")
+    return {"message": "Post saved successfully", "data": item}
 
-    logger.info(f"title : {post.title}")
-    logger.info(f"body : {post.body}")
-    logger.info(f"user : {authorization}")
-
-    # Doit retourner le résultat de la requête la table dynamodb
-    return []
 
 @app.get("/posts")
 async def get_all_posts(user: Union[str, None] = None):
-    
-    # Doit retourner une liste de post
-    return users
+    # Get all posts from DynamoDB
+    response = table.scan()
+    posts = response['Items']
+    return {"message": "Posts retrieved successfully", "data": posts}
 
-    
+
 @app.delete("/posts/{post_id}")
-async def get_post_user_id(post_id: str):
-    # Doit retourner le résultat de la requête la table dynamodb
-    return []
+async def delete_post(post_id: str):
+    # Delete post from DynamoDB
+    response = table.delete_item(Key={'Entity': post_id})
+    logger.info(f"Deleted post with ID: {post_id}")
+    return {"message": "Post deleted successfully"}
 
 @app.get("/signedUrlPut")
 async def get_signed_url_put(filename: str,filetype: str, postId: str,authorization: str | None = Header(default=None)):
