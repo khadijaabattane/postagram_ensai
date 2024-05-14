@@ -12,7 +12,7 @@ from pydantic import BaseModel
 import uvicorn
 import uuid
 from getSignedUrl import getSignedUrl
-
+from boto3.dynamodb.conditions import Key, Attr
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -75,8 +75,8 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
 @app.get("/posts")
 async def get_all_posts(user: Union[str, None] = None):
     if user:
-        response = table.query(
-            KeyConditionExpression=Key('user').eq(f"USER#{user}")
+        response = table.scan(
+            FilterExpression=Attr('user').eq(f"USER#{user}")
         )
     else:
         # Si aucun utilisateur n'est spécifié, retourner toutes les publications
@@ -85,21 +85,6 @@ async def get_all_posts(user: Union[str, None] = None):
     posts = response['Items']
     return {"message": "Posts retrieved successfully", "data": posts}
 
-@app.get("/posts")
-async def get_posts_by_user(user: str = None):
-    if user:
-        response = table.query(
-            KeyConditionExpression=Key('user').eq(f"USER#{user}")
-        )
-        posts = response['Items']
-        return {"message": f"Posts retrieved successfully for user {user}", "data": posts}
-
-@app.get("/posts/{user}")
-async def get_user_posts(user: str):
-    response = table.scan(FilterExpression=Attr('user').begins_with(f"USER#{user}"))
-    posts = response['Items']
-    return {"message": f"Posts retrieved successfully for user {user}", "data": posts}
-	
 @app.get("/signedUrlPut")
 async def get_signed_url_put(filename: str,filetype: str, postId: str,authorization: str | None = Header(default=None)):
     return getSignedUrl(filename, filetype, postId, authorization)
