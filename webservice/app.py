@@ -68,6 +68,7 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
         "title": post.title,
         "Body": post.body       
     }
+    response = table.put_item(Item=item)
     # Code pour sauvegarder dans DynamoDB
     logger.info(f"Saved post with ID: {post_id}")
     return {"message": "Post saved successfully", "data": item}
