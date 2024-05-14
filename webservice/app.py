@@ -46,7 +46,7 @@ class Post(BaseModel):
 
 
 my_config = Config(
-    region_name='us-east-2',
+    region_name='us-east-1',
     signature_version='v4',
 )
 
