@@ -17,8 +17,6 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-
-
 load_dotenv()
 
 app = FastAPI()
@@ -87,11 +85,6 @@ async def get_posts_by_user(user: str = None):
         response = table.scan(FilterExpression=Attr('user').begins_with(f"USER#{user}"))
         posts = response['Items']
         return {"message": f"Posts retrieved successfully for user {user}", "data": posts}
-    else:
-        # Si aucun utilisateur n'est spécifié, retourner toutes les publications
-        response = table.scan()
-        posts = response['Items']
-        return {"message": "All posts retrieved successfully", "data": posts}
 
 @app.get("/posts/{user}")
 async def get_user_posts(user: str):
