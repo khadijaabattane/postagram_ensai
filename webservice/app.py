@@ -73,9 +73,15 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
 
 
 @app.get("/posts")
-async def get_all_posts(post: Union[str, None] = None):
-    # Get all posts from DynamoDB
-    response = table.scan()
+async def get_all_posts(user: Union[str, None] = None):
+    if user:
+        response = table.query(
+            KeyConditionExpression=Key('user').eq(f"USER#{user}")
+        )
+    else:
+        # Si aucun utilisateur n'est spécifié, retourner toutes les publications
+        response = table.scan()
+
     posts = response['Items']
     return {"message": "Posts retrieved successfully", "data": posts}
 
