@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
-
+import uuid
 from getSignedUrl import getSignedUrl
 
 from pydantic import BaseModel
@@ -56,23 +56,25 @@ s3_client = boto3.client('s3', config=boto3.session.Config(signature_version='s3
 bucket = os.getenv("BUCKET")
 
 
-
 @app.post("/posts")
 async def post_a_post(post: Post, authorization: str | None = Header(default=None)):
-    # Save the post to DynamoDB
+    # Générer un ID unique pour le post
+    post_id = str(uuid.uuid4())
+    
+    # Sauvegarder le post dans DynamoDB
     item = {
-        "Entity": f"USER#{post.title}",  # Assuming title is unique for each post
-        "EntityID": f"#METADATA#{post.title}",
-        "Title": post.title,
-        "Body": post.body
+        "user": f"USER#Adil+{post_id}",  # Clé de partition
+        "id": f"#POST#{post_id}",  # Clé de tri
+        "title": post.title,
+        "Body": post.body       
     }
-    response = table.put_item(Item=item)
-    logger.info(f"Saved post with title: {post.title}")
+    # Code pour sauvegarder dans DynamoDB
+    logger.info(f"Saved post with ID: {post_id}")
     return {"message": "Post saved successfully", "data": item}
 
 
 @app.get("/posts")
-async def get_all_posts(user: Union[str, None] = None):
+async def get_all_posts(post: Union[str, None] = None):
     # Get all posts from DynamoDB
     response = table.scan()
     posts = response['Items']
@@ -82,10 +84,16 @@ async def get_all_posts(user: Union[str, None] = None):
 @app.delete("/posts/{post_id}")
 async def delete_post(post_id: str):
     # Delete post from DynamoDB
-    response = table.delete_item(Key={'Entity': post_id})
+    response = table.delete_item(Key={'id': post_id})
     logger.info(f"Deleted post with ID: {post_id}")
     return {"message": "Post deleted successfully"}
-
+	
+@app.get("/posts/{user}")
+async def get_user_posts(user: str):
+    response = table.scan(FilterExpression=Attr('user').begins_with(f"USER#{user}"))
+    posts = response['Items']
+    return {"message": f"Posts retrieved successfully for user {user}", "data": posts}
+	
 @app.get("/signedUrlPut")
 async def get_signed_url_put(filename: str,filetype: str, postId: str,authorization: str | None = Header(default=None)):
     return getSignedUrl(filename, filetype, postId, authorization)
