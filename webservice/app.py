@@ -75,11 +75,9 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
 @app.get("/posts")
 async def get_all_posts(user: Union[str, None] = None):
     if user:
-	print(user)
         response = table.scan(
             FilterExpression=Attr('user').eq(f"USER#{user}")
         )
-	print(response)
     else:
         # Si aucun utilisateur n'est spécifié, retourner toutes les publications
         response = table.scan()
