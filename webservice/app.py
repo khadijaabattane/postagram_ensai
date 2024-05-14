@@ -82,7 +82,9 @@ async def get_all_posts(post: Union[str, None] = None):
 @app.get("/posts")
 async def get_posts_by_user(user: str = None):
     if user:
-        response = table.scan(FilterExpression=Attr('user').begins_with(f"USER#{user}"))
+        response = table.query(
+            KeyConditionExpression=Key('user').eq(f"USER#{user}")
+        )
         posts = response['Items']
         return {"message": f"Posts retrieved successfully for user {user}", "data": posts}
 
