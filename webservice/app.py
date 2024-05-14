@@ -81,14 +81,18 @@ async def get_all_posts(post: Union[str, None] = None):
     posts = response['Items']
     return {"message": "Posts retrieved successfully", "data": posts}
 
+@app.get("/posts")
+async def get_posts_by_user(user: str = None):
+    if user:
+        response = table.scan(FilterExpression=Attr('user').begins_with(f"USER#{user}"))
+        posts = response['Items']
+        return {"message": f"Posts retrieved successfully for user {user}", "data": posts}
+    else:
+        # Si aucun utilisateur n'est spécifié, retourner toutes les publications
+        response = table.scan()
+        posts = response['Items']
+        return {"message": "All posts retrieved successfully", "data": posts}
 
-@app.delete("/posts/{post_id}")
-async def delete_post(post_id: str):
-    # Delete post from DynamoDB
-    response = table.delete_item(Key={'id': post_id})
-    logger.info(f"Deleted post with ID: {post_id}")
-    return {"message": "Post deleted successfully"}
-	
 @app.get("/posts/{user}")
 async def get_user_posts(user: str):
     response = table.scan(FilterExpression=Attr('user').begins_with(f"USER#{user}"))
