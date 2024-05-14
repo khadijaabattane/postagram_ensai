@@ -63,7 +63,7 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
     
     # Sauvegarder le post dans DynamoDB
     item = {
-        "user": f"USER#Adil+{post_id}",  # Clé de partition
+        "user": f"USER#khadija+{post_id}",  # Clé de partition
         "id": f"#POST#{post_id}",  # Clé de tri
         "title": post.title,
         "Body": post.body       
