@@ -59,7 +59,7 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
     post_id = str(uuid.uuid4())
     item = {
         "user": f"USER#{authorization}",  
-        "id": f"#POST#{post_id}",  
+        "id": f"POST#{post_id}",  
         "title": post.title,
         "Body": post.body       
     }
