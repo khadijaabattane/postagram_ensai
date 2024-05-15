@@ -56,22 +56,22 @@ bucket = os.getenv("BUCKET")
 
 @app.post("/posts")
 async def post_a_post(post: Post, authorization: str | None = Header(default=None)):
-    # Générer un ID unique pour le post
     post_id = str(uuid.uuid4())
-    
-    # Sauvegarder le post dans DynamoDB
     item = {
-        "user": f"USER#{authorization}",  # Clé de partition
-        "id": f"#POST#{post_id}",  # Clé de tri
+        "user": f"USER#{authorization}",  
+        "id": f"#POST#{post_id}",  
         "title": post.title,
         "Body": post.body       
     }
     response = table.put_item(Item=item)
-    # Code pour sauvegarder dans DynamoDB
     logger.info(f"Saved post with ID: {post_id}")
-    return {"message": "Post saved successfully", "data": item}
-
-
+    return {
+        "user": item["user"],
+        "title": item["title"],
+        "body": item["Body"],
+        "image": "",  
+        "label": []
+    }
 @app.get("/posts")
 async def get_all_posts(user: Union[str, None] = None):
     if user:
@@ -79,17 +79,26 @@ async def get_all_posts(user: Union[str, None] = None):
             FilterExpression=Attr('user').eq(f"USER#{user}")
         )
     else:
-        # Si aucun utilisateur n'est spécifié, retourner toutes les publications
         response = table.scan()
 
     posts = response['Items']
-    return {"message": "Posts retrieved successfully", "data": posts}
-	
+    formatted_posts = []
+    for post in posts:
+        formatted_posts.append({
+            "user": post["user"],
+            "title": post["title"],
+            "body": post["Body"],
+            "image": "",  
+            "label": []
+        })
+    return formatted_posts
+
 @app.delete("/posts/{post_id}")
 async def delete_post(post_id: str):
     response = table.delete_item(Key={'EntityID': post_id})
     logger.info(f"Deleted post with ID: {post_id}")
     return {"message": "Post deleted successfully"}
+
 	
 @app.get("/signedUrlPut")
 async def get_signed_url_put(filename: str,filetype: str, postId: str,authorization: str | None = Header(default=None)):
