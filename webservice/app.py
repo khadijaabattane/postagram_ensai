@@ -87,7 +87,7 @@ async def get_all_posts(user: Union[str, None] = None):
     for post in posts:
         formatted_post = {
             "user": post.get("user", ""),
-            "id": post.get("post", ""),
+            "id": post.get("id", ""),
             "title": post.get("title", ""),
             "body": post.get("Body", ""),
             "image": "",  
