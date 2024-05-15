@@ -84,14 +84,16 @@ async def get_all_posts(user: Union[str, None] = None):
     posts = response['Items']
     formatted_posts = []
     for post in posts:
-        formatted_posts.append({
-            "user": post["user"],
-            "title": post["title"],
-            "body": post["Body"],
+        formatted_post = {
+            "user": post.get("user", ""),
+            "title": post.get("title", ""),
+            "body": post.get("Body", ""),
             "image": "",  
             "label": []
-        })
+        }
+        formatted_posts.append(formatted_post)
     return formatted_posts
+
 
 @app.delete("/posts/{post_id}")
 async def delete_post(post_id: str):
