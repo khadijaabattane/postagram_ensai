@@ -67,6 +67,7 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
     logger.info(f"Saved post with ID: {post_id}")
     return {
         "user": item["user"],
+	"id": item["id"],
         "title": item["title"],
         "body": item["Body"],
         "image": "",  
@@ -86,6 +87,7 @@ async def get_all_posts(user: Union[str, None] = None):
     for post in posts:
         formatted_post = {
             "user": post.get("user", ""),
+            "id": post.get("post", ""),
             "title": post.get("title", ""),
             "body": post.get("Body", ""),
             "image": "",  
