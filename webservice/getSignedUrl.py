@@ -20,8 +20,8 @@ def getSignedUrl(filename: str,filetype: str, postId: str, user):
     print("bucket =" +bucket)
     print("object_name"+object_name)
 
-    try:
-        url = s3_client.generate_presigned_url(
+    try:x
+         s3_client.generate_presigned_url(
             Params={
             "Bucket": bucket,
             "Key": object_name,
@@ -31,6 +31,15 @@ def getSignedUrl(filename: str,filetype: str, postId: str, user):
         )
     except ClientError as e:
         logging.error(e)
+
+    try:
+        url = s3_client.generate_presigned_url('get_object',
+                                                    Params={'Bucket': bucket,
+                                                            'Key': object_name})
+    except ClientError as e:
+        logging.error(e)
+        return None
+
 
 
     logger.info(f'Url: {url}')
