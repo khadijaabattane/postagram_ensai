@@ -15,12 +15,9 @@ def getSignedUrl(filename: str,filetype: str, postId: str, user):
     logger = logging.getLogger("uvicorn")
     filename = f'{uuid.uuid4()}{Path(filename).name}'
     object_name = f"{user}/{postId}/{filename}"
-    print("file_name = "+filename)
-    print("bucket =" +bucket)
-    print("object_name"+object_name)
-    
+
     try:
-        urlPut = s3_client.generate_presigned_url(
+        url = s3_client.generate_presigned_url(
             Params={
             "Bucket": bucket,
             "Key": object_name,
@@ -31,18 +28,9 @@ def getSignedUrl(filename: str,filetype: str, postId: str, user):
     except ClientError as e:
         logging.error(e)
 
-    try:
-        urlGet = s3_client.generate_presigned_url('get_object',
-                                                    Params={'Bucket': bucket,
-                                                            'Key': object_name})
-    except ClientError as e:
-        logging.error(e)
-        return None
 
-    logger.info(f'UrlGet: {urlGet}')
-    logger.info(f'UrlPut: {urlPut}')
-
+    logger.info(f'Url: {url}')
     return {
-            "uploadURL": urlGet,
+            "uploadURL": url,
             "objectName" : object_name
         }
