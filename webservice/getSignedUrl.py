@@ -16,6 +16,10 @@ def getSignedUrl(filename: str,filetype: str, postId: str, user):
     filename = f'{uuid.uuid4()}{Path(filename).name}'
     object_name = f"{user}/{postId}/{filename}"
 
+    print("file_name = "+filename)
+    print("bucket =" +bucket)
+    print("object_name"+object_name)
+
     try:
         url = s3_client.generate_presigned_url(
             Params={
