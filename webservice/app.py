@@ -70,8 +70,8 @@ async def post_a_post(post: Post, authorization: str | None = Header(default=Non
 	"id": item["id"],
         "title": item["title"],
         "body": item["Body"],
-        "image": "",  
-        "label": []
+        "image": item.get("image", ""),  
+        "label": item.get("labels", [])
     }
 @app.get("/posts")
 async def get_all_posts(user: Union[str, None] = None):
@@ -90,8 +90,8 @@ async def get_all_posts(user: Union[str, None] = None):
             "id": post.get("id", ""),
             "title": post.get("title", ""),
             "body": post.get("Body", ""),
-            "image": "",  
-            "label": []
+            "image": post.get("image", ""),  
+            "label": post.get("labels", [])
         }
         formatted_posts.append(formatted_post)
     return formatted_posts
