@@ -97,42 +97,61 @@ async def get_all_posts(user: Union[str, None] = None):
     return formatted_posts
 
 
+def extract_bucket_key_from_presigned_url(url):
+    parsed_url = urlparse(url)
+    bucket_name = parsed_url.netloc.split('.')[0]
+    key = parsed_url.path.lstrip('/')
+    return bucket_name, key
+
 @app.delete("/posts/{post_id}")
-async def delete_post(post_id: str):
+async def delete_post(post_id: str, authorization: str = Header(None)):
     post_id = "POST#" + post_id
     
-       # Query the table to find the item by post_id
-    response = table.scan(
+    user_id = authorization  
+
+    try:
+        # Query the table to find the item by post_id
+        response = table.scan(
             FilterExpression="id = :id",
             ExpressionAttributeValues={":id": post_id}
         )
 
-    items = response.get('Items', [])
-    if not items:
-        raise HTTPException(status_code=404, detail="Post not found")
-	
-    # Assume the first item is the one we want to delete (since post_id should be unique)
-    item = items[0]
-    user_id = item['user']
+        items = response.get('Items', [])
+        if not items:
+            raise HTTPException(status_code=404, detail="Post not found")
 
-    # Get the S3 URL and extract the bucket name and key
-    s3_url = item['image']
-    parsed_url = urlparse(s3_url)
-    bucket_name = parsed_url.netloc.split('.')[0]
-    object_key = parsed_url.path.lstrip('/')
+        # Assume the first item is the one we want to delete (since post_id should be unique)
+        item = items[0]
 
-    # Delete the S3 object
-    s3_client.delete_object(Bucket=bucket_name, Key=object_key)
-    logger.info(f"Deleted S3 object: {s3_url}")
-    
-    # Delete the item using partition key and sort key
-    delete_response = table.delete_item(
+        # Validate that the user making the request is the owner of the post
+        if item['user'] != user_id:
+            raise HTTPException(status_code=403, detail="Permission denied")
+
+        # Get the S3 URL and extract the bucket name and key
+        s3_url = item['image']
+        bucket_name, object_key = extract_bucket_key_from_presigned_url(s3_url)
+
+        # Delete the S3 object
+        s3_client.delete_object(Bucket=bucket_name, Key=object_key)
+        logger.info(f"Deleted S3 object: {s3_url}")
+
+        # Delete the item using partition key and sort key
+        delete_response = table.delete_item(
             Key={
                 'user': user_id,
                 'id': post_id
             }
         )
-    return delete_response
+
+        if delete_response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
+            logger.info(f"Deleted post with ID: {post_id}")
+            return {"message": f"Post with ID {post_id} deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete post")
+
+    except Exception as e:
+        logger.error(f"Error deleting post with ID {post_id}: {e}")
+        raise HTTPException(status_code=500, detail="Error deleting post")
 
 
 	
