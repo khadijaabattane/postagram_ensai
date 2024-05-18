@@ -14,7 +14,7 @@ import uuid
 from getSignedUrl import getSignedUrl
 from boto3.dynamodb.conditions import Key, Attr
 from pydantic import BaseModel
-
+from urllib.parse import urlparse
 app = FastAPI()
 
 load_dotenv()
