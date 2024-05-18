@@ -124,7 +124,7 @@ async def delete_post(post_id: str, authorization: str = Header(None)):
         item = items[0]
 
         # Validate that the user making the request is the owner of the post
-        if item['user'] != "USER#"+user_id:
+        if item['user'] != user_id:
             raise HTTPException(status_code=403, detail="Permission denied")
 
         # Get the S3 URL and extract the bucket name and key if the image URL is not empty
