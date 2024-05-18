@@ -127,9 +127,13 @@ async def delete_post(post_id: str, authorization: str = Header(None)):
         if item['user'] != "USER#"+user_id:
             raise HTTPException(status_code=403, detail="Permission denied")
 
-        # Get the S3 URL and extract the bucket name and key
-        s3_url = item['image']
-        bucket_name, object_key = extract_bucket_key_from_presigned_url(s3_url)
+        # Get the S3 URL and extract the bucket name and key if the image URL is not empty
+        s3_url = item.get('image', '')
+        if s3_url:
+            bucket_name, object_key = extract_bucket_key_from_presigned_url(s3_url)
+            # Delete the S3 object
+            s3_client.delete_object(Bucket=bucket_name, Key=object_key)
+            logger.info(f"Deleted S3 object: {s3_url}")
 
         # Delete the S3 object
         s3_client.delete_object(Bucket=bucket_name, Key=object_key)
