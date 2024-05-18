@@ -99,9 +99,31 @@ async def get_all_posts(user: Union[str, None] = None):
 
 @app.delete("/posts/{post_id}")
 async def delete_post(post_id: str):
-    response = table.delete_item(Key={'id': "POST#"+tpost_id})
-    logger.info(f"Deleted post with ID: {post_id}")
-    return response
+    post_id = "POST#" + post_id
+    
+       # Query the table to find the item by post_id
+    response = table.scan(
+            FilterExpression="id = :id",
+            ExpressionAttributeValues={":id": post_id}
+        )
+
+    items = response.get('Items', [])
+    if not items:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+        # Assume the first item is the one we want to delete (since post_id should be unique)
+    item = items[0]
+    user_id = item['user']
+
+        # Delete the item using partition key and sort key
+    delete_response = table.delete_item(
+            Key={
+                'user': user_id,
+                'id': post_id
+            }
+        )
+    return delete_response
+
 
 	
 @app.get("/signedUrlPut")
