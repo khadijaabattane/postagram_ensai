@@ -99,7 +99,7 @@ async def get_all_posts(user: Union[str, None] = None):
 
 @app.delete("/posts/{post_id}")
 async def delete_post(post_id: str):
-    response = table.delete_item(Key={'EntityID': post_id})
+    response = table.delete_item(Key={'id': post_id})
     logger.info(f"Deleted post with ID: {post_id}")
     return {"message": "Post deleted successfully"}
 
