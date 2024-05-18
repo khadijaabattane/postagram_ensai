@@ -135,10 +135,6 @@ async def delete_post(post_id: str, authorization: str = Header(None)):
             s3_client.delete_object(Bucket=bucket_name, Key=object_key)
             logger.info(f"Deleted S3 object: {s3_url}")
 
-        # Delete the S3 object
-        s3_client.delete_object(Bucket=bucket_name, Key=object_key)
-        logger.info(f"Deleted S3 object: {s3_url}")
-
         # Delete the item using partition key and sort key
         delete_response = table.delete_item(
             Key={
