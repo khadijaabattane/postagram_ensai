@@ -110,12 +110,22 @@ async def delete_post(post_id: str):
     items = response.get('Items', [])
     if not items:
         raise HTTPException(status_code=404, detail="Post not found")
-
-        # Assume the first item is the one we want to delete (since post_id should be unique)
+	
+    # Assume the first item is the one we want to delete (since post_id should be unique)
     item = items[0]
     user_id = item['user']
 
-        # Delete the item using partition key and sort key
+    # Get the S3 URL and extract the bucket name and key
+    s3_url = item['image']
+    parsed_url = urlparse(s3_url)
+    bucket_name = parsed_url.netloc.split('.')[0]
+    object_key = parsed_url.path.lstrip('/')
+
+    # Delete the S3 object
+    s3_client.delete_object(Bucket=bucket_name, Key=object_key)
+    logger.info(f"Deleted S3 object: {s3_url}")
+    
+    # Delete the item using partition key and sort key
     delete_response = table.delete_item(
             Key={
                 'user': user_id,
