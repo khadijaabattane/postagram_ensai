@@ -107,7 +107,7 @@ def extract_bucket_key_from_presigned_url(url):
 async def delete_post(post_id: str, authorization: str = Header(None)):
     post_id = "POST#" + post_id
     
-    user_id = authorization  
+    user_id = "USER#"+authorization  
 
     try:
         # Query the table to find the item by post_id
@@ -145,7 +145,7 @@ async def delete_post(post_id: str, authorization: str = Header(None)):
 
         if delete_response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
             logger.info(f"Deleted post with ID: {post_id}")
-            return {"message": f"Post with ID {post_id} deleted successfully"}
+            return delete_response
         else:
             raise HTTPException(status_code=500, detail="Failed to delete post")
 
